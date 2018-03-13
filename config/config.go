@@ -273,6 +273,8 @@ type GlobalConfig struct {
 	EvaluationInterval model.Duration `yaml:"evaluation_interval,omitempty"`
 	// The labels to add to any timeseries that this Prometheus instance scrapes.
 	ExternalLabels model.LabelSet `yaml:"external_labels,omitempty"`
+	// Global relabel config
+	RelabelConfigs []*RelabelConfig `yaml:"relabel_configs,omitempty"`
 
 	// Catches all undefined fields and must be empty after parsing.
 	XXX map[string]interface{} `yaml:",inline"`
@@ -309,6 +311,9 @@ func (c *GlobalConfig) UnmarshalYAML(unmarshal func(interface{}) error) error {
 		gc.EvaluationInterval = DefaultGlobalConfig.EvaluationInterval
 	}
 	*c = *gc
+	if len(gc.RelabelConfigs) > 0 {
+		DefaultScrapeConfig.RelabelConfigs = gc.RelabelConfigs
+	}
 	return nil
 }
 
@@ -386,6 +391,8 @@ func (c *ScrapeConfig) UnmarshalYAML(unmarshal func(interface{}) error) error {
 			}
 		}
 	}
+
+	c.RelabelConfigs = append(DefaultScrapeConfig.RelabelConfigs, c.RelabelConfigs...)
 	return nil
 }
 

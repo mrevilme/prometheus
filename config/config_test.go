@@ -54,6 +54,16 @@ var expectedConf = &Config{
 		ScrapeInterval:     model.Duration(15 * time.Second),
 		ScrapeTimeout:      DefaultGlobalConfig.ScrapeTimeout,
 		EvaluationInterval: model.Duration(30 * time.Second),
+		RelabelConfigs: []*RelabelConfig{
+				{
+					SourceLabels: model.LabelNames{"job", "__meta_dns_name"},
+					TargetLabel:  "job",
+					Separator:    ";",
+					Regex:        MustNewRegexp("(.*)some-[regex]"),
+					Replacement:  "foo-${1}",
+					Action:       RelabelReplace,
+				},
+		},
 
 		ExternalLabels: model.LabelSet{
 			"monitor": "codelab",
@@ -540,6 +550,12 @@ var expectedConf = &Config{
 	},
 	original: "",
 }
+
+func TestLoadConfigGlobalRelabel(t *testing.T) {
+	_, err := LoadFile("testdata/conf.good.globalrelabel.yml")
+	testutil.Ok(t, err)
+}
+
 
 func TestLoadConfig(t *testing.T) {
 	// Parse a valid file that sets a global scrape timeout. This tests whether parsing
